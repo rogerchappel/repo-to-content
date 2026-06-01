@@ -1,0 +1,12 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'fs';
+import { execFileSync, spawnSync } from 'child_process';
+import { inspectRepo, generateContent, checkClaims } from '../src/index.js';
+const repo = 'fixtures/sample-repo';
+test('inspects README and package metadata', () => { const facts=inspectRepo(repo); assert.equal(facts.name,'sample-tool'); assert.ok(facts.bullets.length >= 2); });
+test('generates requested formats plus evidence map', () => { const r=generateContent(repo,['posts','launch-notes']); assert.match(r.outputs.posts,/sample-tool/); assert.ok(r.outputs['evidence.json']); });
+test('claim checker accepts evidence-backed lines', () => { const r=generateContent(repo,['launch-notes']); const evidence=JSON.parse(r.outputs['evidence.json']).evidence; assert.equal(checkClaims(r.outputs['launch-notes'], evidence).ok, true); });
+test('claim checker rejects unsupported copy', () => { const result=checkClaims('Fastest platform in the world with SOC2 compliance', []); assert.equal(result.ok,false); });
+test('cli writes artifacts', () => { fs.rmSync('tmp-content',{recursive:true,force:true}); execFileSync('node',['src/cli.js',repo,'--format','posts','--out','tmp-content'],{encoding:'utf8'}); assert.ok(fs.existsSync('tmp-content/posts.md')); fs.rmSync('tmp-content',{recursive:true,force:true}); });
+test('cli check-claims exits nonzero for unsupported claims', () => { fs.writeFileSync('tmp-claim.md','Unverified enterprise claim'); fs.writeFileSync('tmp-evidence.json',JSON.stringify({evidence:[]})); const r=spawnSync('node',['src/cli.js','--check-claims','tmp-claim.md','tmp-evidence.json'],{encoding:'utf8'}); assert.equal(r.status,2); fs.rmSync('tmp-claim.md'); fs.rmSync('tmp-evidence.json'); });
