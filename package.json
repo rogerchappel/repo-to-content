@@ -1,0 +1,22 @@
+{
+  "name": "repo-to-content",
+  "version": "0.1.0",
+  "description": "Generate evidence-grounded launch content from local repository facts",
+  "type": "module",
+  "bin": {
+    "repo-to-content": "src/cli.js"
+  },
+  "scripts": {
+    "test": "node --test",
+    "check": "node --check src/*.js test/*.test.js",
+    "build": "node scripts/validate.js",
+    "smoke": "bash scripts/smoke.sh"
+  },
+  "keywords": [
+    "agent-skill",
+    "dry-run",
+    "cli",
+    "oss"
+  ],
+  "license": "MIT"
+}
