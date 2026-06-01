@@ -13,7 +13,12 @@ export function inspectRepo(repoPath) {
 }
 function safeGit(repoPath) { try { return execFileSync('git',['log','--oneline','-5'],{cwd:repoPath,encoding:'utf8'}).trim().split('\n').filter(Boolean); } catch { return []; } }
 export function generateContent(repoPath, formats=FORMATS) {
-  const facts = inspectRepo(repoPath); const evidence = [{claim:facts.name, source:'package.json or README.md'}, ...facts.bullets.map(b=>({claim:b, source:'README.md'})), ...facts.gitLog.map(g=>({claim:g, source:'git log'}))];
+  const facts = inspectRepo(repoPath); const evidence = [
+    {claim:facts.name, source:'package.json or README.md'},
+    {claim:facts.description, source:'package.json'},
+    ...facts.bullets.map(b=>({claim:b, source:'README.md'})),
+    ...facts.gitLog.map(g=>({claim:g, source:'git log'}))
+  ].filter(item => item.claim);
   const outputs = {};
   if (formats.includes('posts')) outputs.posts = [`Built around ${facts.name}: ${facts.description}`, `What it does: ${facts.bullets.slice(0,3).join('; ')}`].join('\n');
   if (formats.includes('video-script')) outputs['video-script'] = [`Hook: Here is ${facts.name}.`, `Show: open the README and run the smoke command.`, `Proof: cite ${facts.files.join(', ')}.`].join('\n');
@@ -25,8 +30,10 @@ export function generateContent(repoPath, formats=FORMATS) {
 }
 export function checkClaims(markdown, evidence) {
   const missing = [];
+  const headings = new Set(['Launch notes:', 'Evidence-backed capabilities:', 'Recent commits:']);
   for (const line of markdown.split(/\n+/).filter(Boolean)) {
     const normalized = line.replace(/^[-# ]+/, '').trim();
+    if ([...headings].some(prefix => normalized.startsWith(prefix))) continue;
     if (normalized.length > 20 && !evidence.some(e => normalized.includes(e.claim) || e.claim.includes(normalized))) missing.push(normalized);
   }
   return { ok: missing.length === 0, missing };

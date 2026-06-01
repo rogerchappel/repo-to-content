@@ -3,8 +3,10 @@ import fs from 'fs';
 import path from 'path';
 import { generateContent, checkClaims } from './index.js';
 const args = process.argv.slice(2); const cmdOrRepo=args.shift();
-if (!cmdOrRepo || cmdOrRepo === '--help') { console.log('Usage: repo-to-content <repo> [--format posts] [--out dir]
-       repo-to-content --check-claims content.md evidence.json'); process.exit(cmdOrRepo ? 0 : 1); }
+if (!cmdOrRepo || cmdOrRepo === '--help') {
+  console.log('Usage: repo-to-content <repo> [--format posts] [--out dir]\n       repo-to-content --check-claims content.md evidence.json');
+  process.exit(cmdOrRepo ? 0 : 1);
+}
 try {
   if (cmdOrRepo === '--check-claims') {
     const markdown = fs.readFileSync(args[0],'utf8'); const evidence = JSON.parse(fs.readFileSync(args[1],'utf8')).evidence || [];
