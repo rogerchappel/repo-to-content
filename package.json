@@ -35,5 +35,6 @@
   "bugs": {
     "url": "https://github.com/rogerchappel/repo-to-content/issues"
   },
-  "homepage": "https://github.com/rogerchappel/repo-to-content#readme"
+  "homepage": "https://github.com/rogerchappel/repo-to-content#readme",
+  "author": "Roger Chappel"
 }
