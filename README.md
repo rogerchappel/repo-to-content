@@ -33,3 +33,12 @@ This project is local-first. It does not execute external actions or write to li
 - V1 uses deterministic local parsing.
 - Fixtures are intentionally small.
 - Human review is required before any generated plan or content is used externally.
+
+## Development
+
+Run the same checks locally before opening a PR:
+
+- `npm run check` - node --check src/*.js test/*.test.js
+- `npm run build` - node scripts/validate.js
+- `npm test` - node --test
+- `npm run smoke` - bash scripts/smoke.sh
