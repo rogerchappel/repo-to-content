@@ -12,9 +12,21 @@ npm run smoke
 ## CLI
 
 ```bash
-node src/cli.js fixtures/sample-repo --format posts --out content
+node src/cli.js examples/sample-content-repo --format posts --out content
 node src/cli.js --check-claims content/posts.md content/evidence.json
 ```
+
+## Runnable demo
+
+Generate a fixture launch pack and verify the launch note claims:
+
+```bash
+bash demo/run-fixture-content.sh
+```
+
+The script writes posts, a video script, launch notes, and `evidence.json` to a
+temporary directory. See `docs/tutorials/evidence-backed-launch-pack.md` for the
+full recipe.
 
 ## Safety notes
 
