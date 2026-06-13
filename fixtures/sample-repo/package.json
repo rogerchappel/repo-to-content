@@ -1,0 +1,6 @@
+{
+  "name": "sample-tool",
+  "version": "0.1.0",
+  "description": "A sample tool fixture for repo-to-content generated assets.",
+  "type": "module"
+}
