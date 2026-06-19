@@ -33,6 +33,10 @@ full recipe.
   checked-in fixture repo.
 - [docs/promo/launch-pack.md](docs/promo/launch-pack.md) gives a grounded
   short-form promotion pack for explaining the tool.
+- [docs/promo/video-demo-brief.md](docs/promo/video-demo-brief.md) outlines a
+  short recording based on the fixture demo.
+- [examples/demo-output-manifest.md](examples/demo-output-manifest.md) lists the
+  expected files produced by the demo command.
 
 ## Safety notes
 
