@@ -56,3 +56,8 @@ Run the same checks locally before opening a PR:
 - `npm run build` - node scripts/validate.js
 - `npm test` - node --test
 - `npm run smoke` - bash scripts/smoke.sh
+- `npm run package:smoke` - assert required package artifacts are present
+- `npm run release:check` - run the full local release gate
+
+See [docs/release-readiness.md](docs/release-readiness.md) for the package
+surface and reviewer checklist.
