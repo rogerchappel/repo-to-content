@@ -24,6 +24,12 @@ Generate a fixture launch pack and verify the launch note claims:
 bash demo/run-fixture-content.sh
 ```
 
+Check every generated promo artifact against the same evidence file:
+
+```bash
+bash demo/check-promo-claims.sh
+```
+
 The script writes posts, a video script, launch notes, and `evidence.json` to a
 temporary directory. See `docs/tutorials/evidence-backed-launch-pack.md` for the
 full recipe.
@@ -37,6 +43,8 @@ full recipe.
   short recording based on the fixture demo.
 - [examples/demo-output-manifest.md](examples/demo-output-manifest.md) lists the
   expected files produced by the demo command.
+- [docs/tutorials/check-promo-claims.md](docs/tutorials/check-promo-claims.md)
+  shows how to claim-check the generated posts, video script, and launch notes.
 
 ## Safety notes
 
