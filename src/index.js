@@ -4,12 +4,24 @@ import { execFileSync } from 'child_process';
 const FORMATS = ['posts','video-script','demo-outline','launch-notes','changelog'];
 export function inspectRepo(repoPath) {
   const files = {};
-  for (const name of ['README.md','package.json','CHANGELOG.md']) { const p=path.join(repoPath,name); if (fs.existsSync(p)) files[name]=fs.readFileSync(p,'utf8'); }
+  const repoRoot = fs.realpathSync(repoPath);
+  for (const name of ['README.md','package.json','CHANGELOG.md']) {
+    const contents = readContainedFile(repoRoot, name);
+    if (contents !== undefined) files[name] = contents;
+  }
   const gitLog = safeGit(repoPath);
   const packageJson = files['package.json'] ? JSON.parse(files['package.json']) : {};
   const readmeTitle = (files['README.md'] || '').match(/^#\s+(.+)$/m)?.[1] || packageJson.name || path.basename(repoPath);
   const bullets = [...(files['README.md'] || '').matchAll(/^-\s+(.+)$/gm)].slice(0,5).map(m=>m[1]);
   return { name: packageJson.name || readmeTitle, description: packageJson.description || bullets[0] || '', bullets, gitLog, files: Object.keys(files) };
+}
+function readContainedFile(repoRoot, name) {
+  const candidate = path.join(repoRoot, name);
+  let resolved;
+  try { resolved = fs.realpathSync(candidate); } catch (err) { if (err.code === 'ENOENT') return; throw err; }
+  const relative = path.relative(repoRoot, resolved);
+  if (relative === '..' || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) return;
+  return fs.readFileSync(resolved, 'utf8');
 }
 function safeGit(repoPath) { try { return execFileSync('git',['log','--oneline','-5'],{cwd:repoPath,encoding:'utf8'}).trim().split('\n').filter(Boolean); } catch { return []; } }
 export function generateContent(repoPath, formats=FORMATS) {
