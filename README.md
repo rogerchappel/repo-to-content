@@ -12,9 +12,18 @@ npm run smoke
 ## CLI
 
 ```bash
+# Print selected artifacts as JSON without writing files
+node src/cli.js examples/sample-content-repo --format posts
+
+# Write selected artifacts and evidence to an explicit directory
 node src/cli.js examples/sample-content-repo --format posts --out content
 node src/cli.js --check-claims content/posts.md content/evidence.json
 ```
+
+`--format` may be repeated with any of `posts`, `video-script`,
+`demo-outline`, `launch-notes`, or `changelog`. When `--out` is omitted, the
+generated artifacts are printed to standard output and the filesystem is left
+unchanged.
 
 ## Demo and promotion artifacts
 
