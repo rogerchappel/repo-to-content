@@ -13,6 +13,14 @@ test('inspects README and package metadata', () => { const facts=inspectRepo(rep
 test('generates requested formats plus evidence map', () => { const r=generateContent(repo,['posts','launch-notes']); assert.match(r.outputs.posts,/sample-tool/); assert.ok(r.outputs['evidence.json']); });
 test('claim checker accepts evidence-backed lines', () => { const r=generateContent(repo,['launch-notes']); const evidence=JSON.parse(r.outputs['evidence.json']).evidence; assert.equal(checkClaims(r.outputs['launch-notes'], evidence).ok, true); });
 test('claim checker rejects unsupported copy', () => { const result=checkClaims('Fastest platform in the world with SOC2 compliance', []); assert.equal(result.ok,false); });
+test('claim checker rejects short unsupported promotional claims', () => {
+  const claims = ['Enterprise ready', 'SOC 2 certified', 'Guaranteed uptime'];
+  assert.deepEqual(checkClaims(claims.join('\n'), []), { ok: false, missing: claims });
+});
+test('claim checker ignores blank lines and marker-only Markdown structure', () => {
+  const markdown = ['#', '##   ', '-', '*', '+', '1.', '2)', '---', '***', '___', '', '   '].join('\n');
+  assert.deepEqual(checkClaims(markdown, []), { ok: true, missing: [] });
+});
 test('cli writes artifacts', () => { fs.rmSync('tmp-content',{recursive:true,force:true}); execFileSync('node',['src/cli.js',repo,'--format','posts','--out','tmp-content'],{encoding:'utf8'}); assert.ok(fs.existsSync('tmp-content/posts.md')); fs.rmSync('tmp-content',{recursive:true,force:true}); });
 test('cli prints artifacts without writing when --out is omitted', () => {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'repo-to-content-cli-'));
@@ -58,6 +66,18 @@ for (const [name, args, message] of [
   });
 }
 test('cli check-claims exits nonzero for unsupported claims', () => { fs.writeFileSync('tmp-claim.md','Unverified enterprise claim'); fs.writeFileSync('tmp-evidence.json',JSON.stringify({evidence:[]})); const r=spawnSync('node',['src/cli.js','--check-claims','tmp-claim.md','tmp-evidence.json'],{encoding:'utf8'}); assert.equal(r.status,2); fs.rmSync('tmp-claim.md'); fs.rmSync('tmp-evidence.json'); });
+test('cli check-claims exits 2 for a short unsupported claim', () => {
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'repo-to-content-claims-'));
+  try {
+    fs.writeFileSync(path.join(cwd, 'claim.md'), 'Enterprise ready');
+    fs.writeFileSync(path.join(cwd, 'evidence.json'), JSON.stringify({ evidence: [] }));
+    const result = spawnSync('node', [cli, '--check-claims', 'claim.md', 'evidence.json'], { cwd, encoding: 'utf8' });
+    assert.equal(result.status, 2);
+    assert.deepEqual(JSON.parse(result.stdout), { ok: false, missing: ['Enterprise ready'] });
+  } finally {
+    fs.rmSync(cwd, { recursive: true, force: true });
+  }
+});
 test('ignores scanned metadata symlinked outside the repository', () => {
   const parent = fs.mkdtempSync(path.join(os.tmpdir(), 'repo-to-content-'));
   const repoPath = path.join(parent, 'repo');
