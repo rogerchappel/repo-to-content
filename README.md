@@ -43,6 +43,12 @@ The script writes posts, a video script, launch notes, and `evidence.json` to a
 temporary directory. See `docs/tutorials/evidence-backed-launch-pack.md` for the
 full recipe.
 
+Claim checking applies to short and long content alike. Blank lines,
+marker-only headings and lists, thematic breaks, and the generated
+`Evidence-backed capabilities:` and `Recent commits:` section labels are
+treated as Markdown structure rather than claims. A `Launch notes:` prefix is
+also structural, but the title following it must still match the evidence.
+
 - [examples/content-sweep-demo.md](examples/content-sweep-demo.md) walks
   through generating posts, a video script, launch notes, and evidence from the
   checked-in fixture repo.
