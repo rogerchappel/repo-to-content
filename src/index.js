@@ -42,11 +42,17 @@ export function generateContent(repoPath, formats=FORMATS) {
 }
 export function checkClaims(markdown, evidence) {
   const missing = [];
-  const headings = new Set(['Launch notes:', 'Evidence-backed capabilities:', 'Recent commits:']);
-  for (const line of markdown.split(/\n+/).filter(Boolean)) {
-    const normalized = line.replace(/^[-# ]+/, '').trim();
-    if ([...headings].some(prefix => normalized.startsWith(prefix))) continue;
-    if (normalized.length > 20 && !evidence.some(e => normalized.includes(e.claim) || e.claim.includes(normalized))) missing.push(normalized);
+  const structuralLabels = new Set(['Evidence-backed capabilities:', 'Recent commits:']);
+  for (const line of markdown.split(/\n/)) {
+    if (/^\s*(?:#{1,6}|[-+*]|\d+[.)])?\s*$/.test(line) || /^\s*(?:-{3,}|\*{3,}|_{3,})\s*$/.test(line)) continue;
+    let normalized = line
+      .replace(/^\s*#{1,6}\s*/, '')
+      .replace(/^\s*(?:[-+*]|\d+[.)])\s+/, '')
+      .trim();
+    if (structuralLabels.has(normalized)) continue;
+    if (normalized.startsWith('Launch notes:')) normalized = normalized.slice('Launch notes:'.length).trim();
+    if (!normalized) continue;
+    if (!evidence.some(e => normalized.includes(e.claim) || e.claim.includes(normalized))) missing.push(normalized);
   }
   return { ok: missing.length === 0, missing };
 }
