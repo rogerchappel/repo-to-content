@@ -17,6 +17,22 @@ test('claim checker rejects short unsupported promotional claims', () => {
   const claims = ['Enterprise ready', 'SOC 2 certified', 'Guaranteed uptime'];
   assert.deepEqual(checkClaims(claims.join('\n'), []), { ok: false, missing: claims });
 });
+test('claim checker rejects lines that are only substrings of evidence', () => {
+  const evidence = [{ claim: 'Generate evidence-grounded launch content from local repository facts' }];
+  const claims = ['local', 'content', 'evidence-grounded launch'];
+  assert.deepEqual(checkClaims(claims.join('\n'), evidence), { ok: false, missing: claims });
+});
+test('claim checker accepts complete short and long evidence claims', () => {
+  const evidence = [
+    { claim: 'sample-tool' },
+    { claim: 'Generate evidence-grounded launch content from local repository facts' }
+  ];
+  const claims = [
+    'Here is sample-tool.',
+    'Generate evidence-grounded launch content from local repository facts'
+  ];
+  assert.deepEqual(checkClaims(claims.join('\n'), evidence), { ok: true, missing: [] });
+});
 test('claim checker ignores blank lines and marker-only Markdown structure', () => {
   const markdown = ['#', '##   ', '-', '*', '+', '1.', '2)', '---', '***', '___', '', '   '].join('\n');
   assert.deepEqual(checkClaims(markdown, []), { ok: true, missing: [] });
