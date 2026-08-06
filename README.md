@@ -2,6 +2,8 @@
 
 Generate evidence-grounded launch content from local repository facts.
 
+Directories without Git metadata are supported, such as downloaded source archives. In that case, Git history is treated as empty and no Git diagnostic is printed.
+
 ## Quickstart
 
 ```bash

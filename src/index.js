@@ -23,7 +23,7 @@ function readContainedFile(repoRoot, name) {
   if (relative === '..' || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) return;
   return fs.readFileSync(resolved, 'utf8');
 }
-function safeGit(repoPath) { try { return execFileSync('git',['log','--oneline','-5'],{cwd:repoPath,encoding:'utf8'}).trim().split('\n').filter(Boolean); } catch { return []; } }
+function safeGit(repoPath) { try { return execFileSync('git',['log','--oneline','-5'],{cwd:repoPath,encoding:'utf8',stdio:['ignore','pipe','ignore']}).trim().split('\n').filter(Boolean); } catch { return []; } }
 export function generateContent(repoPath, formats=FORMATS) {
   const facts = inspectRepo(repoPath); const evidence = [
     {claim:facts.name, source:'package.json or README.md'},
