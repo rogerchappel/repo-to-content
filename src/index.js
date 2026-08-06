@@ -52,7 +52,7 @@ export function checkClaims(markdown, evidence) {
     if (structuralLabels.has(normalized)) continue;
     if (normalized.startsWith('Launch notes:')) normalized = normalized.slice('Launch notes:'.length).trim();
     if (!normalized) continue;
-    if (!evidence.some(e => normalized.includes(e.claim) || e.claim.includes(normalized))) missing.push(normalized);
+    if (!evidence.some(e => normalized.includes(e.claim))) missing.push(normalized);
   }
   return { ok: missing.length === 0, missing };
 }
