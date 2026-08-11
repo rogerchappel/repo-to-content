@@ -4,7 +4,7 @@ import { execFileSync } from 'child_process';
 const FORMATS = ['posts','video-script','demo-outline','launch-notes','changelog'];
 export function inspectRepo(repoPath) {
   const files = {};
-  const repoRoot = fs.realpathSync(repoPath);
+  const repoRoot = resolveRepoDirectory(repoPath);
   for (const name of ['README.md','package.json','CHANGELOG.md']) {
     const contents = readContainedFile(repoRoot, name);
     if (contents !== undefined) files[name] = contents;
@@ -14,6 +14,16 @@ export function inspectRepo(repoPath) {
   const readmeTitle = (files['README.md'] || '').match(/^#\s+(.+)$/m)?.[1] || packageJson.name || path.basename(repoPath);
   const bullets = [...(files['README.md'] || '').matchAll(/^-\s+(.+)$/gm)].slice(0,5).map(m=>m[1]);
   return { name: packageJson.name || readmeTitle, description: packageJson.description || bullets[0] || '', bullets, gitLog, files: Object.keys(files) };
+}
+function resolveRepoDirectory(repoPath) {
+  let repoRoot;
+  try { repoRoot = fs.realpathSync(repoPath); }
+  catch (err) {
+    if (err.code === 'ENOENT') throw new Error(`Repository target does not exist: ${repoPath}`);
+    throw err;
+  }
+  if (!fs.statSync(repoRoot).isDirectory()) throw new Error(`Repository target is not a directory: ${repoPath}`);
+  return repoRoot;
 }
 function readContainedFile(repoRoot, name) {
   const candidate = path.join(repoRoot, name);
