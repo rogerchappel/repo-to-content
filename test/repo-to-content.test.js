@@ -9,6 +9,7 @@ import { inspectRepo, generateContent, checkClaims } from '../src/index.js';
 const repo = 'examples/sample-content-repo';
 const cli = fileURLToPath(new URL('../src/cli.js', import.meta.url));
 const fixtureRepo = fileURLToPath(new URL('../examples/sample-content-repo', import.meta.url));
+const libraryApis = { inspectRepo, generateContent };
 test('inspects README and package metadata', () => { const facts=inspectRepo(repo); assert.equal(facts.name,'sample-tool'); assert.ok(facts.bullets.length >= 2); });
 test('generates requested formats plus evidence map', () => { const r=generateContent(repo,['posts','launch-notes']); assert.match(r.outputs.posts,/sample-tool/); assert.ok(r.outputs['evidence.json']); });
 test('claim checker accepts evidence-backed lines', () => { const r=generateContent(repo,['launch-notes']); const evidence=JSON.parse(r.outputs['evidence.json']).evidence; assert.equal(checkClaims(r.outputs['launch-notes'], evidence).ok, true); });
@@ -62,6 +63,43 @@ test('cli quietly analyzes a directory without Git history', () => {
     fs.rmSync(cwd, { recursive: true, force: true });
   }
 });
+test('library APIs support an empty directory', () => {
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'repo-to-content-empty-'));
+  try {
+    assert.equal(inspectRepo(cwd).name, path.basename(cwd));
+    assert.ok(generateContent(cwd).outputs['evidence.json']);
+  } finally {
+    fs.rmSync(cwd, { recursive: true, force: true });
+  }
+});
+for (const [targetClass, createTarget, message] of [
+  ['nonexistent target', cwd => path.join(cwd, 'missing'), target => `Repository target does not exist: ${target}`],
+  ['non-directory target', cwd => { const target = path.join(cwd, 'README.md'); fs.writeFileSync(target, '# Not a repository'); return target; }, target => `Repository target is not a directory: ${target}`]
+]) {
+  test(`library APIs reject a ${targetClass}`, () => {
+    const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'repo-to-content-target-'));
+    try {
+      const target = createTarget(cwd);
+      for (const [name, api] of Object.entries(libraryApis)) {
+        assert.throws(() => api(target), { message: message(target) }, name);
+      }
+    } finally {
+      fs.rmSync(cwd, { recursive: true, force: true });
+    }
+  });
+  test(`cli rejects a ${targetClass}`, () => {
+    const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'repo-to-content-target-'));
+    try {
+      const target = createTarget(cwd);
+      const result = spawnSync('node', [cli, target, '--format', 'posts'], { encoding: 'utf8' });
+      assert.equal(result.status, 1);
+      assert.equal(result.stdout, '');
+      assert.equal(result.stderr, `${message(target)}\n`);
+    } finally {
+      fs.rmSync(cwd, { recursive: true, force: true });
+    }
+  });
+}
 test('inspection preserves Git history when it is available', () => {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'repo-to-content-git-'));
   try {

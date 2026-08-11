@@ -13,6 +13,9 @@ npm run smoke
 
 ## CLI
 
+The repository target must be an existing directory. Empty directories and
+directories without Git history are supported.
+
 ```bash
 # Print selected artifacts as JSON without writing files
 node src/cli.js examples/sample-content-repo --format posts
