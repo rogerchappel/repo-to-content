@@ -62,8 +62,21 @@ export function checkClaims(markdown, evidence) {
     if (structuralLabels.has(normalized)) continue;
     if (normalized.startsWith('Launch notes:')) normalized = normalized.slice('Launch notes:'.length).trim();
     if (!normalized) continue;
-    if (!evidence.some(e => normalized.includes(e.claim))) missing.push(normalized);
+    if (!isSupportedClaimLine(normalized, evidence)) missing.push(normalized);
   }
   return { ok: missing.length === 0, missing };
+}
+function isSupportedClaimLine(line, evidence) {
+  let templated = line;
+  const claims = [...new Set(evidence.map(item => item.claim).filter(Boolean))]
+    .sort((a, b) => b.length - a.length);
+  for (const claim of claims) templated = templated.split(claim).join('\0');
+  return [
+    /^\0[.!?]?$/,
+    /^Here is \0[.!?]?$/,
+    /^Built around \0:\s*\0[.!?]?$/,
+    /^What it does:\s*\0(?:;\s*\0)*[.!?]?$/,
+    /^Hook:\s*Here is \0[.!?]?$/
+  ].some(pattern => pattern.test(templated));
 }
 export { FORMATS };
