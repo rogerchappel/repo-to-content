@@ -55,6 +55,9 @@ treated as Markdown structure rather than claims. A `Launch notes:` prefix is
 also structural, but the title following it must still match the evidence. A
 claim line is supported only when it contains a complete evidence claim; being
 a short or partial substring of a longer evidence claim is not sufficient.
+Supported text must fill the line, apart from punctuation and the generated
+`Here is`, `Built around`, `What it does`, and `Hook: Here is` wrappers;
+additional factual text on the same line is rejected.
 
 - [examples/content-sweep-demo.md](examples/content-sweep-demo.md) walks
   through generating posts, a video script, launch notes, and evidence from the

@@ -34,6 +34,24 @@ test('claim checker accepts complete short and long evidence claims', () => {
   ];
   assert.deepEqual(checkClaims(claims.join('\n'), evidence), { ok: true, missing: [] });
 });
+test('claim checker rejects unsupported facts appended to supported identifiers', () => {
+  const claim = 'sample-tool is SOC 2 certified and guarantees 100% uptime';
+  assert.deepEqual(checkClaims(claim, [{ claim: 'sample-tool', source: 'package.json' }]), {
+    ok: false,
+    missing: [claim]
+  });
+});
+test('claim checker accepts generated evidence-backed wrapper lines', () => {
+  const result = generateContent(repo, ['posts', 'video-script', 'launch-notes', 'changelog']);
+  const evidence = JSON.parse(result.outputs['evidence.json']).evidence;
+  const generatedClaims = [
+    result.outputs.posts,
+    result.outputs['video-script'].split('\n')[0],
+    result.outputs['launch-notes'],
+    result.outputs.changelog
+  ].join('\n');
+  assert.deepEqual(checkClaims(generatedClaims, evidence), { ok: true, missing: [] });
+});
 test('claim checker ignores blank lines and marker-only Markdown structure', () => {
   const markdown = ['#', '##   ', '-', '*', '+', '1.', '2)', '---', '***', '___', '', '   '].join('\n');
   assert.deepEqual(checkClaims(markdown, []), { ok: true, missing: [] });
