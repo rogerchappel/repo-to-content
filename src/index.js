@@ -4,16 +4,38 @@ import { execFileSync } from 'child_process';
 const FORMATS = ['posts','video-script','demo-outline','launch-notes','changelog'];
 export function inspectRepo(repoPath) {
   const files = {};
+  const warnings = [];
   const repoRoot = resolveRepoDirectory(repoPath);
   for (const name of ['README.md','package.json','CHANGELOG.md']) {
     const contents = readContainedFile(repoRoot, name);
     if (contents !== undefined) files[name] = contents;
   }
   const gitLog = safeGit(repoPath);
-  const packageJson = files['package.json'] ? JSON.parse(files['package.json']) : {};
+  const packageJson = parsePackageJson(files, warnings);
   const readmeTitle = (files['README.md'] || '').match(/^#\s+(.+)$/m)?.[1] || packageJson.name || path.basename(repoPath);
   const bullets = [...(files['README.md'] || '').matchAll(/^-\s+(.+)$/gm)].slice(0,5).map(m=>m[1]);
-  return { name: packageJson.name || readmeTitle, description: packageJson.description || bullets[0] || '', bullets, gitLog, files: Object.keys(files) };
+  return {
+    name: packageJson.name || readmeTitle,
+    description: packageJson.description || bullets[0] || '',
+    bullets,
+    gitLog,
+    files: Object.keys(files),
+    warnings,
+    sources: {
+      name: packageJson.name ? 'package.json' : files['README.md'] ? 'README.md' : 'repository path',
+      description: packageJson.description ? 'package.json' : bullets[0] ? 'README.md' : undefined
+    }
+  };
+}
+function parsePackageJson(files, warnings) {
+  if (!files['package.json']) return {};
+  try { return JSON.parse(files['package.json']); }
+  catch (err) {
+    if (!(err instanceof SyntaxError)) throw err;
+    delete files['package.json'];
+    warnings.push('Ignored invalid package.json: malformed JSON');
+    return {};
+  }
 }
 function resolveRepoDirectory(repoPath) {
   let repoRoot;
@@ -36,8 +58,8 @@ function readContainedFile(repoRoot, name) {
 function safeGit(repoPath) { try { return execFileSync('git',['log','--oneline','-5'],{cwd:repoPath,encoding:'utf8',stdio:['ignore','pipe','ignore']}).trim().split('\n').filter(Boolean); } catch { return []; } }
 export function generateContent(repoPath, formats=FORMATS) {
   const facts = inspectRepo(repoPath); const evidence = [
-    {claim:facts.name, source:'package.json or README.md'},
-    {claim:facts.description, source:'package.json'},
+    {claim:facts.name, source:facts.sources.name},
+    {claim:facts.description, source:facts.sources.description},
     ...facts.bullets.map(b=>({claim:b, source:'README.md'})),
     ...facts.gitLog.map(g=>({claim:g, source:'git log'}))
   ].filter(item => item.claim);
