@@ -25,3 +25,7 @@ and evidence file.
 `repo-to-content` is meant to produce review artifacts, not live posts. Keeping
 the generated claims tied to README, package metadata, and recent git log facts
 makes the draft easier to approve or reject before promotion.
+
+Package metadata contributes only when `package.json` is valid JSON. A malformed
+file produces a warning while generation continues from README, repository-path,
+and Git facts; no claims from the invalid metadata enter `evidence.json`.
