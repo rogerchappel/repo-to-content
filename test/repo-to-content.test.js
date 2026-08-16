@@ -90,6 +90,44 @@ test('library APIs support an empty directory', () => {
     fs.rmSync(cwd, { recursive: true, force: true });
   }
 });
+test('library APIs ignore malformed package metadata and report a warning', () => {
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'repo-to-content-malformed-package-'));
+  try {
+    fs.writeFileSync(path.join(cwd, 'README.md'), '# README Tool\n\n- README-backed description');
+    fs.writeFileSync(path.join(cwd, 'package.json'), '{ invalid json');
+    const result = generateContent(cwd, ['posts']);
+    const evidence = JSON.parse(result.outputs['evidence.json']).evidence;
+
+    assert.equal(result.facts.name, 'README Tool');
+    assert.equal(result.facts.description, 'README-backed description');
+    assert.deepEqual(result.facts.files, ['README.md']);
+    assert.deepEqual(result.facts.warnings, ['Ignored invalid package.json: malformed JSON']);
+    assert.doesNotMatch(JSON.stringify(evidence), /package\.json/);
+    assert.deepEqual(evidence.slice(0, 2), [
+      { claim: 'README Tool', source: 'README.md' },
+      { claim: 'README-backed description', source: 'README.md' }
+    ]);
+  } finally {
+    fs.rmSync(cwd, { recursive: true, force: true });
+  }
+});
+test('cli succeeds with malformed package metadata and prints its diagnostic', () => {
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'repo-to-content-malformed-package-'));
+  try {
+    fs.writeFileSync(path.join(cwd, 'README.md'), '# CLI README Tool\n\n- CLI README description');
+    fs.writeFileSync(path.join(cwd, 'package.json'), '{ invalid json');
+    const result = spawnSync('node', [cli, cwd, '--format', 'posts'], { encoding: 'utf8' });
+    const outputs = JSON.parse(result.stdout);
+    const evidence = JSON.parse(outputs['evidence.json']).evidence;
+
+    assert.equal(result.status, 0);
+    assert.equal(result.stderr, 'Warning: Ignored invalid package.json: malformed JSON\n');
+    assert.match(outputs.posts, /CLI README Tool: CLI README description/);
+    assert.doesNotMatch(JSON.stringify(evidence), /package\.json/);
+  } finally {
+    fs.rmSync(cwd, { recursive: true, force: true });
+  }
+});
 for (const [targetClass, createTarget, message] of [
   ['nonexistent target', cwd => path.join(cwd, 'missing'), target => `Repository target does not exist: ${target}`],
   ['non-directory target', cwd => { const target = path.join(cwd, 'README.md'); fs.writeFileSync(target, '# Not a repository'); return target; }, target => `Repository target is not a directory: ${target}`]

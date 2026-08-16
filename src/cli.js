@@ -17,6 +17,7 @@ try {
   const repo = cmdOrRepo;
   const { formats, out } = parseOptions(args);
   const result = generateContent(repo, formats.length ? formats : undefined);
+  for (const warning of result.facts.warnings) console.error(`Warning: ${warning}`);
   if (out) { fs.mkdirSync(out,{recursive:true}); for (const [name,body] of Object.entries(result.outputs)) fs.writeFileSync(path.join(out, name.endsWith('.json')?name:name+'.md'), body); }
   else console.log(JSON.stringify(result.outputs,null,2));
 } catch (err) { console.error(err.message); process.exit(1); }

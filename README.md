@@ -30,6 +30,12 @@ node src/cli.js --check-claims content/posts.md content/evidence.json
 generated artifacts are printed to standard output and the filesystem is left
 unchanged.
 
+Package metadata is optional evidence. If `package.json` contains malformed
+JSON, inspection continues with README, repository-path, and Git evidence; the
+library includes `Ignored invalid package.json: malformed JSON` in
+`facts.warnings`, and the CLI prints the same warning to standard error. The
+invalid file and its untrusted contents are omitted from generated evidence.
+
 ## Demo and promotion artifacts
 
 Generate a fixture launch pack and verify the launch note claims:
