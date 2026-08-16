@@ -18,6 +18,8 @@ Use this checklist before publishing, tagging, or asking reviewers to trust a
 - `npm run build`: runs repository validation.
 - `npm test`: runs fixture-backed Node tests.
 - `npm run smoke`: generates and checks a fixture launch pack.
+- `npm run demo:check-promo-claims`: strictly claim-checks generated posts and
+  launch notes, and asserts the video script and evidence file were generated.
 - `npm run package:smoke`: dry-runs `npm pack` and asserts required release
   artifacts are present.
 - `npm run release:check`: runs the full local release gate used by CI.
