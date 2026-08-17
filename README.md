@@ -44,15 +44,18 @@ Generate a fixture launch pack and verify the launch note claims:
 bash demo/run-fixture-content.sh
 ```
 
-Check every generated promo artifact against the same evidence file:
+Verify the generated promo packet:
 
 ```bash
 bash demo/check-promo-claims.sh
 ```
 
 The script writes posts, a video script, launch notes, and `evidence.json` to a
-temporary directory. See `docs/tutorials/evidence-backed-launch-pack.md` for the
-full recipe.
+temporary directory. It strictly claim-checks `posts.md` and `launch-notes.md`
+against the evidence file, and asserts that `video-script.md` and
+`evidence.json` were generated for human review. The video script contains
+production directions, so it is not treated as a strict claim document. See
+`docs/tutorials/evidence-backed-launch-pack.md` for the full recipe.
 
 Claim checking applies to short and long content alike. Blank lines,
 marker-only headings and lists, thematic breaks, and the generated
@@ -75,7 +78,8 @@ additional factual text on the same line is rejected.
 - [examples/demo-output-manifest.md](examples/demo-output-manifest.md) lists the
   expected files produced by the demo command.
 - [docs/tutorials/check-promo-claims.md](docs/tutorials/check-promo-claims.md)
-  shows how to claim-check the generated posts, video script, and launch notes.
+  shows how to claim-check generated posts and launch notes while reviewing the
+  generated video script and evidence file.
 
 ## Safety notes
 
@@ -96,6 +100,7 @@ Run the same checks locally before opening a PR:
 - `npm test` - node --test
 - `npm run smoke` - bash scripts/smoke.sh
 - `npm run package:smoke` - assert required package artifacts are present
+- `npm run demo:check-promo-claims` - verify the generated promo packet
 - `npm run release:check` - run the full local release gate
 
 See [docs/release-readiness.md](docs/release-readiness.md) for the package
