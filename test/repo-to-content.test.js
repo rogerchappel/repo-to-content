@@ -69,6 +69,36 @@ test('cli prints artifacts without writing when --out is omitted', () => {
     fs.rmSync(cwd, { recursive: true, force: true });
   }
 });
+test('library generates self-checkable posts for README-only sparse metadata', () => {
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'repo-to-content-sparse-'));
+  try {
+    fs.writeFileSync(path.join(cwd, 'README.md'), '# Minimal\n');
+    const result = generateContent(cwd, ['posts']);
+    const evidence = JSON.parse(result.outputs['evidence.json']).evidence;
+
+    assert.equal(result.outputs.posts, 'Here is Minimal.');
+    assert.doesNotMatch(result.outputs.posts, /Built around .*:\s*$/m);
+    assert.doesNotMatch(result.outputs.posts, /What it does:\s*$/m);
+    assert.deepEqual(checkClaims(result.outputs.posts, evidence), { ok: true, missing: [] });
+  } finally {
+    fs.rmSync(cwd, { recursive: true, force: true });
+  }
+});
+test('cli generates self-checkable posts for README-only sparse metadata', () => {
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'repo-to-content-sparse-cli-'));
+  try {
+    fs.writeFileSync(path.join(cwd, 'README.md'), '# Minimal CLI\n');
+    const generated = spawnSync('node', [cli, cwd, '--format', 'posts'], { encoding: 'utf8' });
+    const outputs = JSON.parse(generated.stdout);
+    const evidence = JSON.parse(outputs['evidence.json']).evidence;
+
+    assert.equal(generated.status, 0);
+    assert.equal(outputs.posts, 'Here is Minimal CLI.');
+    assert.deepEqual(checkClaims(outputs.posts, evidence), { ok: true, missing: [] });
+  } finally {
+    fs.rmSync(cwd, { recursive: true, force: true });
+  }
+});
 test('cli quietly analyzes a directory without Git history', () => {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'repo-to-content-non-git-'));
   try {
