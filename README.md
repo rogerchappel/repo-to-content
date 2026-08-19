@@ -68,6 +68,10 @@ Supported text must fill the line, apart from punctuation and the generated
 `Here is`, `Built around`, `What it does`, and `Hook: Here is` wrappers;
 additional factual text on the same line is rejected.
 
+When a repository has a title but no description or README bullets, generated
+posts use the evidence-backed `Here is <title>.` form. Empty `Built around` and
+`What it does` template lines are omitted.
+
 - [examples/content-sweep-demo.md](examples/content-sweep-demo.md) walks
   through generating posts, a video script, launch notes, and evidence from the
   checked-in fixture repo.
