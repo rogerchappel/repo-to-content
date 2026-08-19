@@ -64,7 +64,12 @@ export function generateContent(repoPath, formats=FORMATS) {
     ...facts.gitLog.map(g=>({claim:g, source:'git log'}))
   ].filter(item => item.claim);
   const outputs = {};
-  if (formats.includes('posts')) outputs.posts = [`Built around ${facts.name}: ${facts.description}`, `What it does: ${facts.bullets.slice(0,3).join('; ')}`].join('\n');
+  if (formats.includes('posts')) {
+    const posts = [];
+    if (facts.description) posts.push(`Built around ${facts.name}: ${facts.description}`);
+    if (facts.bullets.length) posts.push(`What it does: ${facts.bullets.slice(0,3).join('; ')}`);
+    outputs.posts = posts.length ? posts.join('\n') : `Here is ${facts.name}.`;
+  }
   if (formats.includes('video-script')) outputs['video-script'] = [`Hook: Here is ${facts.name}.`, `Show: open the README and run the smoke command.`, `Proof: cite ${facts.files.join(', ')}.`].join('\n');
   if (formats.includes('demo-outline')) outputs['demo-outline'] = ['Install locally','Run fixture smoke','Show generated output','Call out limitations'].join('\n');
   if (formats.includes('launch-notes')) outputs['launch-notes'] = `# Launch notes: ${facts.name}\n\n${facts.description}\n\nEvidence-backed capabilities:\n${facts.bullets.map(b=>'- '+b).join('\n')}\n`;
