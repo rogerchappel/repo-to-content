@@ -7,7 +7,7 @@ Directories without Git metadata are supported, such as downloaded source archiv
 ## Quickstart
 
 ```bash
-npm install
+npm ci
 npm run smoke
 ```
 
@@ -99,13 +99,20 @@ This project is local-first. It does not execute external actions or write to li
 
 Run the same checks locally before opening a PR:
 
+```bash
+npm ci
+npm run release:check
+```
+
+The release gate requires the committed lockfile and verifies that CI retains
+its frozen `npm ci` install. Its component commands are:
+
 - `npm run check` - node --check src/*.js test/*.test.js
 - `npm run build` - node scripts/validate.js
 - `npm test` - node --test
 - `npm run smoke` - bash scripts/smoke.sh
 - `npm run package:smoke` - assert required package artifacts are present
 - `npm run demo:check-promo-claims` - verify the generated promo packet
-- `npm run release:check` - run the full local release gate
 
 See [docs/release-readiness.md](docs/release-readiness.md) for the package
 surface and reviewer checklist.

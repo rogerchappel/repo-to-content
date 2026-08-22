@@ -7,7 +7,7 @@ Thanks for helping improve `repo-to-content`.
 Use Node.js 20 or newer.
 
 ```bash
-npm install
+npm ci
 npm run release:check
 ```
 
