@@ -68,7 +68,7 @@ Use local file parsing plus git metadata. No external accounts required.
 
 ```bash
 repo-to-content ./my-tool --format video-script --format posts --out content/
-repo-to-content ./my-tool --check-claims content/post.md
+repo-to-content --check-claims content/posts.md content/evidence.json
 ```
 
 ## Verification
