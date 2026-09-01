@@ -9,6 +9,7 @@ import { inspectRepo, generateContent, checkClaims } from '../src/index.js';
 const repo = 'examples/sample-content-repo';
 const cli = fileURLToPath(new URL('../src/cli.js', import.meta.url));
 const fixtureRepo = fileURLToPath(new URL('../examples/sample-content-repo', import.meta.url));
+const prd = fileURLToPath(new URL('../docs/PRD.md', import.meta.url));
 const libraryApis = { inspectRepo, generateContent };
 test('inspects README and package metadata', () => { const facts=inspectRepo(repo); assert.equal(facts.name,'sample-tool'); assert.ok(facts.bullets.length >= 2); });
 test('generates requested formats plus evidence map', () => { const r=generateContent(repo,['posts','launch-notes']); assert.match(r.outputs.posts,/sample-tool/); assert.ok(r.outputs['evidence.json']); });
@@ -240,6 +241,28 @@ test('cli check-claims exits 2 for a short unsupported claim', () => {
     const result = spawnSync('node', [cli, '--check-claims', 'claim.md', 'evidence.json'], { cwd, encoding: 'utf8' });
     assert.equal(result.status, 2);
     assert.deepEqual(JSON.parse(result.stdout), { ok: false, missing: ['Enterprise ready'] });
+  } finally {
+    fs.rmSync(cwd, { recursive: true, force: true });
+  }
+});
+test('PRD claim-check example matches the CLI and succeeds', () => {
+  const markdown = fs.readFileSync(prd, 'utf8');
+  const command = markdown.match(/^repo-to-content --check-claims (\S+) (\S+)$/m);
+  assert.ok(command, 'PRD must document the two-file top-level claim-check command');
+
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'repo-to-content-prd-'));
+  try {
+    for (const relativePath of command.slice(1)) {
+      fs.mkdirSync(path.dirname(path.join(cwd, relativePath)), { recursive: true });
+    }
+    fs.writeFileSync(path.join(cwd, command[1]), 'Evidence-backed claim');
+    fs.writeFileSync(path.join(cwd, command[2]), JSON.stringify({
+      evidence: [{ claim: 'Evidence-backed claim', source: 'fixture' }]
+    }));
+
+    const result = spawnSync('node', [cli, '--check-claims', ...command.slice(1)], { cwd, encoding: 'utf8' });
+    assert.equal(result.status, 0, result.stderr);
+    assert.deepEqual(JSON.parse(result.stdout), { ok: true, missing: [] });
   } finally {
     fs.rmSync(cwd, { recursive: true, force: true });
   }
