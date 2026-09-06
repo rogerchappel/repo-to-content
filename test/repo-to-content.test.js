@@ -116,7 +116,29 @@ test('library APIs support an empty directory', () => {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'repo-to-content-empty-'));
   try {
     assert.equal(inspectRepo(cwd).name, path.basename(cwd));
-    assert.ok(generateContent(cwd).outputs['evidence.json']);
+    const result = generateContent(cwd, ['video-script']);
+    assert.ok(result.outputs['evidence.json']);
+    assert.equal(result.outputs['video-script'], `Hook: Here is ${path.basename(cwd)}.`);
+    assert.doesNotMatch(result.outputs['video-script'], /README|smoke command|Proof:\s*cite\s*\./);
+  } finally {
+    fs.rmSync(cwd, { recursive: true, force: true });
+  }
+});
+test('video script preserves directions backed by repository files and a smoke script', () => {
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'repo-to-content-video-evidence-'));
+  try {
+    fs.writeFileSync(path.join(cwd, 'README.md'), '# Demonstrable Tool\n');
+    fs.writeFileSync(path.join(cwd, 'package.json'), JSON.stringify({
+      name: 'demonstrable-tool',
+      scripts: { smoke: 'node scripts/smoke.js' }
+    }));
+
+    const result = generateContent(cwd, ['video-script']);
+    assert.equal(result.outputs['video-script'], [
+      'Hook: Here is demonstrable-tool.',
+      'Show: open the README and run npm run smoke.',
+      'Proof: cite README.md, package.json.'
+    ].join('\n'));
   } finally {
     fs.rmSync(cwd, { recursive: true, force: true });
   }
