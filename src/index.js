@@ -21,6 +21,7 @@ export function inspectRepo(repoPath) {
     gitLog,
     files: Object.keys(files),
     warnings,
+    smokeCommand: typeof packageJson.scripts?.smoke === 'string' ? 'npm run smoke' : undefined,
     sources: {
       name: packageJson.name ? 'package.json' : files['README.md'] ? 'README.md' : 'repository path',
       description: packageJson.description ? 'package.json' : bullets[0] ? 'README.md' : undefined
@@ -70,7 +71,15 @@ export function generateContent(repoPath, formats=FORMATS) {
     if (facts.bullets.length) posts.push(`What it does: ${facts.bullets.slice(0,3).join('; ')}`);
     outputs.posts = posts.length ? posts.join('\n') : `Here is ${facts.name}.`;
   }
-  if (formats.includes('video-script')) outputs['video-script'] = [`Hook: Here is ${facts.name}.`, `Show: open the README and run the smoke command.`, `Proof: cite ${facts.files.join(', ')}.`].join('\n');
+  if (formats.includes('video-script')) {
+    const video = [`Hook: Here is ${facts.name}.`];
+    const hasReadme = facts.files.includes('README.md');
+    if (hasReadme && facts.smokeCommand) video.push(`Show: open the README and run ${facts.smokeCommand}.`);
+    else if (hasReadme) video.push('Show: open the README.');
+    else if (facts.smokeCommand) video.push(`Show: run ${facts.smokeCommand}.`);
+    if (facts.files.length) video.push(`Proof: cite ${facts.files.join(', ')}.`);
+    outputs['video-script'] = video.join('\n');
+  }
   if (formats.includes('demo-outline')) outputs['demo-outline'] = ['Install locally','Run fixture smoke','Show generated output','Call out limitations'].join('\n');
   if (formats.includes('launch-notes')) outputs['launch-notes'] = `# Launch notes: ${facts.name}\n\n${facts.description}\n\nEvidence-backed capabilities:\n${facts.bullets.map(b=>'- '+b).join('\n')}\n`;
   if (formats.includes('changelog')) outputs.changelog = ['Recent commits:', ...facts.gitLog.map(g=>'- '+g)].join('\n');
