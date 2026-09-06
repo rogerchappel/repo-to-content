@@ -57,6 +57,12 @@ against the evidence file, and asserts that `video-script.md` and
 production directions, so it is not treated as a strict claim document. See
 `docs/tutorials/evidence-backed-launch-pack.md` for the full recipe.
 
+Video production directions are emitted only when their repository evidence
+exists. The README direction requires `README.md`, and the smoke direction
+requires a string `scripts.smoke` entry in valid `package.json` metadata. If
+neither exists, the script contains only its evidence-backed hook; a `Proof:`
+line is omitted when there are no inspected files to cite.
+
 Claim checking applies to short and long content alike. Blank lines,
 marker-only headings and lists, thematic breaks, and the generated
 `Evidence-backed capabilities:` and `Recent commits:` section labels are

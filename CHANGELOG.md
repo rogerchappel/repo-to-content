@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Ground video-script README, smoke, and proof directions in inspected files
+  and omit unavailable directions for empty repositories.
 - Reject nonexistent and non-directory repository targets with clear errors
   from the library and CLI while continuing to support empty directories.
 - Replace raw package dry-run output with an assertion-backed package smoke
