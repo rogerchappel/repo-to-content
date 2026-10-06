@@ -314,3 +314,25 @@ test('ignores scanned metadata symlinked outside the repository', () => {
     fs.rmSync(parent, { recursive: true, force: true });
   }
 });
+test('includes nested docs and tests Markdown as contained evidence', () => {
+  const parent = fs.mkdtempSync(path.join(os.tmpdir(), 'repo-to-content-nested-'));
+  const repoPath = path.join(parent, 'repo');
+  const outside = path.join(parent, 'outside');
+  fs.mkdirSync(path.join(repoPath, 'docs', 'guide'), { recursive: true });
+  fs.mkdirSync(path.join(repoPath, 'tests'), { recursive: true });
+  fs.mkdirSync(outside);
+  fs.writeFileSync(path.join(repoPath, 'docs', 'guide', 'API.md'), '# API evidence');
+  fs.writeFileSync(path.join(repoPath, 'tests', 'behavior.md'), '# Test evidence');
+  fs.writeFileSync(path.join(outside, 'secret.md'), '# External evidence');
+  fs.symlinkSync(path.join(outside, 'secret.md'), path.join(repoPath, 'docs', 'external.md'));
+  try {
+    const result = generateContent(repoPath, ['video-script']);
+    const cited = result.facts.files.filter(name => name.endsWith('.md'));
+    assert.ok(cited.includes(path.join('docs', 'guide', 'API.md')));
+    assert.ok(cited.includes(path.join('tests', 'behavior.md')));
+    assert.ok(cited.every(name => fs.realpathSync(path.join(repoPath, name)).startsWith(`${fs.realpathSync(repoPath)}${path.sep}`)));
+    assert.ok(!cited.some(name => name.includes('external')));
+    assert.match(result.outputs['video-script'], /docs[\\/]guide[\\/]API\.md/);
+    assert.match(result.outputs['video-script'], /tests[\\/]behavior\.md/);
+  } finally { fs.rmSync(parent, { recursive: true, force: true }); }
+});

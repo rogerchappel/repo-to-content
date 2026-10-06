@@ -10,6 +10,12 @@ export function inspectRepo(repoPath) {
     const contents = readContainedFile(repoRoot, name);
     if (contents !== undefined) files[name] = contents;
   }
+  for (const directory of ['docs', 'tests']) {
+    for (const name of listContainedMarkdown(repoRoot, directory)) {
+      const contents = readContainedFile(repoRoot, name);
+      if (contents !== undefined) files[name] = contents;
+    }
+  }
   const gitLog = safeGit(repoPath);
   const packageJson = parsePackageJson(files, warnings);
   const readmeTitle = (files['README.md'] || '').match(/^#\s+(.+)$/m)?.[1] || packageJson.name || path.basename(repoPath);
@@ -27,6 +33,24 @@ export function inspectRepo(repoPath) {
       description: packageJson.description ? 'package.json' : bullets[0] ? 'README.md' : undefined
     }
   };
+}
+function listContainedMarkdown(repoRoot, directory) {
+  const root = path.join(repoRoot, directory);
+  let resolvedRoot;
+  try { resolvedRoot = fs.realpathSync(root); } catch (err) { if (err.code === 'ENOENT') return []; throw err; }
+  const relativeRoot = path.relative(repoRoot, resolvedRoot);
+  if (relativeRoot === '..' || relativeRoot.startsWith(`..${path.sep}`) || path.isAbsolute(relativeRoot) || !fs.statSync(resolvedRoot).isDirectory()) return [];
+  const files = [];
+  function visit(current, relative) {
+    for (const entry of fs.readdirSync(current, { withFileTypes: true })) {
+      const candidate = path.join(current, entry.name);
+      const name = path.join(relative, entry.name);
+      if (entry.isDirectory() && !entry.isSymbolicLink()) visit(candidate, name);
+      else if (entry.isFile() && entry.name.endsWith('.md')) files.push(name);
+    }
+  }
+  visit(resolvedRoot, relativeRoot);
+  return files.sort();
 }
 function parsePackageJson(files, warnings) {
   if (!files['package.json']) return {};
