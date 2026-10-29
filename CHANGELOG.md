@@ -15,3 +15,7 @@ All notable changes to this project will be documented in this file.
 ## 0.1.0
 
 - Initial public release of the local-first repository-to-content CLI.
+
+## Unreleased
+
+- Declare Node.js `>=22 <25` as the supported runtime range, matching the Node 22 and 24 CI matrix.
