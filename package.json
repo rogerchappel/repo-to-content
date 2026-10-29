@@ -45,5 +45,8 @@
     "url": "https://github.com/rogerchappel/repo-to-content/issues"
   },
   "homepage": "https://github.com/rogerchappel/repo-to-content#readme",
-  "author": "Roger Chappel"
+  "author": "Roger Chappel",
+  "engines": {
+    "node": ">=22 <25"
+  }
 }
