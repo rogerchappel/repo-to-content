@@ -4,6 +4,14 @@ const required = ['README.md','SKILL.md','docs/PRD.md','docs/TASKS.md','docs/ORC
 const missing = required.filter(file => !fs.existsSync(file));
 if (missing.length) { console.error('Missing required files: ' + missing.join(', ')); process.exit(1); }
 
+const manifest = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+const lock = JSON.parse(fs.readFileSync('package-lock.json', 'utf8'));
+const supportedNodeRange = '>=22 <25';
+if (manifest.engines?.node !== supportedNodeRange || lock.packages?.['']?.engines?.node !== supportedNodeRange) {
+  console.error(`package.json and package-lock.json must declare Node ${supportedNodeRange}`);
+  process.exit(1);
+}
+
 const workflow = fs.readFileSync('.github/workflows/ci.yml', 'utf8');
 if (!/^\s*- run: npm ci\s*$/m.test(workflow)) {
   console.error('CI must install dependencies with npm ci');
