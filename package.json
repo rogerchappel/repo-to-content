@@ -8,7 +8,7 @@
   },
   "scripts": {
     "test": "node --test",
-    "check": "node --check src/*.js test/*.test.js",
+    "check": "for file in src/*.js test/*.test.js; do node --check \"$file\" || exit; done",
     "build": "node scripts/validate.js",
     "smoke": "bash scripts/smoke.sh",
     "package:smoke": "node scripts/package-smoke.js",
