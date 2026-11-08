@@ -314,6 +314,24 @@ test('ignores scanned metadata symlinked outside the repository', () => {
     fs.rmSync(parent, { recursive: true, force: true });
   }
 });
+test('bounds Markdown traversal depth and file count deterministically', () => {
+  const parent = fs.mkdtempSync(path.join(os.tmpdir(), 'repo-to-content-bounds-'));
+  const repoPath = path.join(parent, 'repo');
+  const docs = path.join(repoPath, 'docs');
+  fs.mkdirSync(docs, { recursive: true });
+  try {
+    for (let i = 0; i < 1005; i++) fs.writeFileSync(path.join(docs, `file-${String(i).padStart(4, '0')}.md`), `# ${i}`);
+    const deep = path.join(docs, ...Array.from({ length: 34 }, (_, i) => `level-${i}`));
+    fs.mkdirSync(deep, { recursive: true });
+    fs.writeFileSync(path.join(deep, 'too-deep.md'), '# too deep');
+    const first = generateContent(repoPath).facts.files.filter(name => name.endsWith('.md'));
+    const second = generateContent(repoPath).facts.files.filter(name => name.endsWith('.md'));
+    assert.equal(first.length, 1000);
+    assert.deepEqual(first, second);
+    assert.ok(first.every(name => fs.realpathSync(path.join(repoPath, name)).startsWith(`${fs.realpathSync(repoPath)}${path.sep}`)));
+    assert.ok(!first.some(name => name.endsWith('too-deep.md')));
+  } finally { fs.rmSync(parent, { recursive: true, force: true }); }
+});
 test('includes nested docs and tests Markdown as contained evidence', () => {
   const parent = fs.mkdtempSync(path.join(os.tmpdir(), 'repo-to-content-nested-'));
   const repoPath = path.join(parent, 'repo');
