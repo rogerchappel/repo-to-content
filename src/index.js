@@ -2,6 +2,8 @@ import fs from 'fs';
 import path from 'path';
 import { execFileSync } from 'child_process';
 const FORMATS = ['posts','video-script','demo-outline','launch-notes','changelog'];
+const MARKDOWN_SCAN_MAX_DEPTH = 32;
+const MARKDOWN_SCAN_MAX_FILES = 1000;
 export function inspectRepo(repoPath) {
   const files = {};
   const warnings = [];
@@ -41,15 +43,17 @@ function listContainedMarkdown(repoRoot, directory) {
   const relativeRoot = path.relative(repoRoot, resolvedRoot);
   if (relativeRoot === '..' || relativeRoot.startsWith(`..${path.sep}`) || path.isAbsolute(relativeRoot) || !fs.statSync(resolvedRoot).isDirectory()) return [];
   const files = [];
-  function visit(current, relative) {
+  function visit(current, relative, depth) {
+    if (depth > MARKDOWN_SCAN_MAX_DEPTH || files.length >= MARKDOWN_SCAN_MAX_FILES) return;
     for (const entry of fs.readdirSync(current, { withFileTypes: true })) {
+      if (files.length >= MARKDOWN_SCAN_MAX_FILES) break;
       const candidate = path.join(current, entry.name);
       const name = path.join(relative, entry.name);
-      if (entry.isDirectory() && !entry.isSymbolicLink()) visit(candidate, name);
+      if (entry.isDirectory() && !entry.isSymbolicLink()) visit(candidate, name, depth + 1);
       else if (entry.isFile() && entry.name.endsWith('.md')) files.push(name);
     }
   }
-  visit(resolvedRoot, relativeRoot);
+  visit(resolvedRoot, relativeRoot, 0);
   return files.sort();
 }
 function parsePackageJson(files, warnings) {
