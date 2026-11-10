@@ -25,4 +25,18 @@ for (const required of ['22', '24']) {
     process.exit(1);
   }
 }
+const engineRange = /^>=?(\d+)(?:\.\d+)?\s*(?:<\s*(\d+))?$/.exec(manifest.engines.node);
+if (!engineRange) {
+  console.error(`Cannot validate CI Node versions against unsupported engine range: ${manifest.engines.node}`);
+  process.exit(1);
+}
+const minimumNode = Number(engineRange[1]);
+const exclusiveMaximum = engineRange[2] === undefined ? Infinity : Number(engineRange[2]);
+for (const version of nodeEndpoints) {
+  const major = Number(version);
+  if (major < minimumNode || major >= exclusiveMaximum) {
+    console.error(`CI tests Node ${version}, outside package engine range ${manifest.engines.node}`);
+    process.exit(1);
+  }
+}
 console.log('release readiness files present');
