@@ -32,6 +32,7 @@ function parseOptions(options) {
     if (!value || value.startsWith('--')) throw new Error(`Missing value for ${option}`);
     if (option === '--format') {
       if (!FORMATS.includes(value)) throw new Error(`Unsupported format: ${value}`);
+      if (formats.includes(value)) throw new Error(`Duplicate format: ${value}`);
       formats.push(value);
     } else {
       if (out !== undefined) throw new Error('--out may only be specified once');
