@@ -237,6 +237,7 @@ test('cli writes only to an explicit output directory', () => {
 });
 for (const [name, args, message] of [
   ['unsupported format', [fixtureRepo, '--format', 'bogus'], 'Unsupported format: bogus'],
+  ['duplicate format', [fixtureRepo, '--format', 'posts', '--format', 'posts'], 'Duplicate format: posts'],
   ['missing format value', [fixtureRepo, '--format'], 'Missing value for --format'],
   ['missing output value', [fixtureRepo, '--out'], 'Missing value for --out'],
   ['option as output value', [fixtureRepo, '--out', '--format', 'posts'], 'Missing value for --out'],

@@ -25,8 +25,9 @@ node src/cli.js examples/sample-content-repo --format posts --out content
 node src/cli.js --check-claims content/posts.md content/evidence.json
 ```
 
-`--format` may be repeated with any of `posts`, `video-script`,
-`demo-outline`, `launch-notes`, or `changelog`. When `--out` is omitted, the
+`--format` may be repeated with distinct values from `posts`, `video-script`,
+`demo-outline`, `launch-notes`, or `changelog`; repeating a format is rejected
+with a clear error. When `--out` is omitted, the
 generated artifacts are printed to standard output and the filesystem is left
 unchanged.
 
