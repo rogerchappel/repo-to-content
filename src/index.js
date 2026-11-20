@@ -21,7 +21,7 @@ export function inspectRepo(repoPath) {
   const gitLog = safeGit(repoPath);
   const packageJson = parsePackageJson(files, warnings);
   const readmeTitle = (files['README.md'] || '').match(/^#\s+(.+)$/m)?.[1] || packageJson.name || path.basename(repoPath);
-  const bullets = [...(files['README.md'] || '').matchAll(/^-\s+(.+)$/gm)].slice(0,5).map(m=>m[1]);
+  const bullets = [...(files['README.md'] || '').matchAll(/^-\s+(.+)$/gm)].slice(0,5).map(m=>m[1].replace(/\[([^\]]+)\]\([^)]*\)/g, '$1'));
   return {
     name: packageJson.name || readmeTitle,
     description: packageJson.description || bullets[0] || '',

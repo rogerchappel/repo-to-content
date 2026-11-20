@@ -12,6 +12,16 @@ const fixtureRepo = fileURLToPath(new URL('../examples/sample-content-repo', imp
 const prd = fileURLToPath(new URL('../docs/PRD.md', import.meta.url));
 const libraryApis = { inspectRepo, generateContent };
 test('inspects README and package metadata', () => { const facts=inspectRepo(repo); assert.equal(facts.name,'sample-tool'); assert.ok(facts.bullets.length >= 2); });
+test('normalizes README link bullets into readable capability text', () => {
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'repo-to-content-links-'));
+  try {
+    fs.writeFileSync(path.join(cwd, 'README.md'), '# Linked\n\n- [examples/content-sweep-demo.md](examples/content-sweep-demo.md) walks through a demo\n');
+    const result = generateContent(cwd, ['posts', 'launch-notes']);
+    assert.deepEqual(result.facts.bullets, ['examples/content-sweep-demo.md walks through a demo']);
+    assert.match(result.outputs.posts, /examples\/content-sweep-demo\.md walks through a demo/);
+    assert.doesNotMatch(result.outputs.posts, /\]\(/);
+  } finally { fs.rmSync(cwd, { recursive: true, force: true }); }
+});
 test('generates requested formats plus evidence map', () => { const r=generateContent(repo,['posts','launch-notes']); assert.match(r.outputs.posts,/sample-tool/); assert.ok(r.outputs['evidence.json']); });
 test('claim checker accepts evidence-backed lines', () => { const r=generateContent(repo,['launch-notes']); const evidence=JSON.parse(r.outputs['evidence.json']).evidence; assert.equal(checkClaims(r.outputs['launch-notes'], evidence).ok, true); });
 test('claim checker rejects unsupported copy', () => { const result=checkClaims('Fastest platform in the world with SOC2 compliance', []); assert.equal(result.ok,false); });
