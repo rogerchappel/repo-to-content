@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 
 import { execFileSync } from "node:child_process";
+import { mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
 const requiredFiles = [
   "src/cli.js",
@@ -22,7 +25,7 @@ const requiredFiles = [
   "CONTRIBUTING.md"
 ];
 
-const output = execFileSync("npm", ["pack", "--dry-run", "--json"], {
+const output = execFileSync("npm", ["pack", "--json"], {
   encoding: "utf8",
   stdio: ["ignore", "pipe", "pipe"]
 });
@@ -36,6 +39,15 @@ if (missing.length > 0) {
   process.exit(1);
 }
 
-console.log(
-  `package smoke ok: ${pack.filename} includes ${pack.files.length} files`
-);
+const temp = mkdtempSync(join(tmpdir(), "repo-to-content-package-smoke-"));
+const archive = join(temp, pack.filename);
+execFileSync("npm", ["pack", "--pack-destination", temp], { stdio: "inherit" });
+try {
+  execFileSync("npm", ["install", "--prefix", temp, "--ignore-scripts", "--no-audit", "--no-fund", archive], { stdio: "inherit" });
+  execFileSync(join(temp, "node_modules", ".bin", "repo-to-content"), ["--help"], { stdio: "ignore" });
+} finally {
+  rmSync(temp, { recursive: true, force: true });
+  rmSync(pack.filename, { force: true });
+}
+
+console.log(`package smoke ok: ${pack.filename} includes ${pack.files.length} files and CLI runs`);
