@@ -39,4 +39,14 @@ for (const version of nodeEndpoints) {
     process.exit(1);
   }
 }
+// Require matrix coverage of the first unsupported major so the boundary is
+// exercised, while keeping it out of the configured CI runners.
+if (exclusiveMaximum !== Infinity && !nodeEndpoints.includes(String(exclusiveMaximum - 1))) {
+  console.error(`CI must test Node ${exclusiveMaximum - 1}, the last supported major before ${manifest.engines.node} excludes Node ${exclusiveMaximum}`);
+  process.exit(1);
+}
+if (exclusiveMaximum !== Infinity && nodeEndpoints.includes(String(exclusiveMaximum))) {
+  console.error(`CI must exclude Node ${exclusiveMaximum}, outside package engine range ${manifest.engines.node}`);
+  process.exit(1);
+}
 console.log('release readiness files present');
