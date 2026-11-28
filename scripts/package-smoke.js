@@ -25,29 +25,31 @@ const requiredFiles = [
   "CONTRIBUTING.md"
 ];
 
-const output = execFileSync("npm", ["pack", "--json"], {
-  encoding: "utf8",
-  stdio: ["ignore", "pipe", "pipe"]
-});
-
-const [pack] = JSON.parse(output);
-const packedFiles = new Set(pack.files.map((file) => file.path));
-const missing = requiredFiles.filter((file) => !packedFiles.has(file));
-
-if (missing.length > 0) {
-  console.error(`package smoke failed: missing ${missing.join(", ")}`);
-  process.exit(1);
-}
-
 const temp = mkdtempSync(join(tmpdir(), "repo-to-content-package-smoke-"));
-const archive = join(temp, pack.filename);
-execFileSync("npm", ["pack", "--pack-destination", temp], { stdio: "inherit" });
 try {
-  execFileSync("npm", ["install", "--prefix", temp, "--ignore-scripts", "--no-audit", "--no-fund", archive], { stdio: "inherit" });
-  execFileSync(join(temp, "node_modules", ".bin", "repo-to-content"), ["--help"], { stdio: "ignore" });
+  const output = execFileSync("npm", ["pack", "--json", "--pack-destination", temp], {
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"]
+  });
+  const [pack] = JSON.parse(output);
+  const missing = requiredFiles.filter((file) => !pack.files.some((entry) => entry.path === file));
+
+  if (missing.length > 0) {
+    throw new Error(`missing ${missing.join(", ")}`);
+  }
+
+  const archive = join(temp, pack.filename);
+  execFileSync("npm", ["install", "--prefix", temp, "--ignore-scripts", "--no-audit", "--no-fund", archive], {
+    stdio: "ignore"
+  });
+  execFileSync(join(temp, "node_modules", ".bin", "repo-to-content"), ["--help"], {
+    stdio: "ignore"
+  });
+
+  console.log(`package smoke ok: installed ${pack.filename} and ran repo-to-content --help`);
+} catch (error) {
+  console.error(`package smoke failed: ${error.message}`);
+  process.exitCode = 1;
 } finally {
   rmSync(temp, { recursive: true, force: true });
-  rmSync(pack.filename, { force: true });
 }
-
-console.log(`package smoke ok: ${pack.filename} includes ${pack.files.length} files and CLI runs`);
